@@ -1,0 +1,1 @@
+"""fonctions utiles (chargement rapide, formatage)"""

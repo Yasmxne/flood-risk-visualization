@@ -1,0 +1,16 @@
+pandas
+numpy
+matplotlib
+seaborn
+plotly
+geopandas
+shapely
+fiona
+pyproj
+
+flask
+jinja2
+
+scikit-learn
+
+tqdm
