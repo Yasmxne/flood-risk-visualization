@@ -18,7 +18,7 @@ def clean_catnat():
 
     })
 
-    df["date_debut"] = pd.to_datetime(df["date_debut"], errors="coerce")
+    df["date_debut"] = pd.to_datetime(df["date_debut"], errors="coerce") 
     df = df.dropna(subset=["code_commune", "type_risque", "date_debut"])
     df["type_risque"] = df["type_risque"].str.lower().str.strip()
 
@@ -69,6 +69,10 @@ def clean_catnat():
     }
 
     df["type_risque"] = df["type_risque"].replace(mapping)
+
+    # créer les colonnes annee et mois de l'occurence de l'aléa
+    df["annee"] = df["date_debut"].dt.year
+    df["mois"] = df["date_debut"].dt.month
 
     return df
 
