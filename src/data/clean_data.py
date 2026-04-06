@@ -22,6 +22,54 @@ def clean_catnat():
     df = df.dropna(subset=["code_commune", "type_risque", "date_debut"])
     df["type_risque"] = df["type_risque"].str.lower().str.strip()
 
+    mapping = {
+        # Inondations
+        "inondations et/ou coulées de boue": "inondation",
+        "coulée de boue": "inondation",
+        "inondations remontée nappe": "inondation",
+        "inondations par choc mécanique des vagues": "inondation",
+        "lave torrentielle": "inondation",
+
+        # Sécheresse
+        "sécheresse": "secheresse",
+        "sécheressse": "secheresse",
+        "mouvements de terrain différentiels consécutifs à la sécheresse et à la réhydratation des sols": "secheresse",
+
+        # Mouvements de terrain
+        "mouvement de terrain": "mouvement_terrain",
+        "glissement de terrain": "mouvement_terrain",
+        "glissement et effondrement de terrain": "mouvement_terrain",
+        "effondrement et/ou affaisement": "mouvement_terrain",
+        "eboulement et/ou chute de blocs": "mouvement_terrain",
+        "glissement et eboulement rocheux": "mouvement_terrain",
+        "mouvements de terrains (hors sécheresse géotechnique)": "mouvement_terrain",
+
+        # Tempêtes
+        "tempête": "tempete",
+        "vents cycloniques": "tempete",
+
+        # Neige / Grêle
+        "poids de la neige": "neige_grele",
+        "grêle": "neige_grele",
+
+        # Vagues / submersion
+        "chocs mécaniques liés à l'action des vagues": "vagues_submersion",
+        "chocs m�caniques li�s � l'action des vagues": "vagues_submersion",
+        "choc m�caniques li�s � l'action des vagues": "vagues_submersion",
+        "raz de marée": "vagues_submersion",
+
+        # Séismes
+        "secousse sismique": "seisme",
+        "séismes": "seisme",
+
+        # Autres
+        "avalanche": "autre",
+        "divers": "autre",
+        "eruption volcanique": "autre"
+    }
+
+    df["type_risque"] = df["type_risque"].replace(mapping)
+
     return df
 
 
