@@ -20,7 +20,7 @@ def merge_catnat_communes():
     df_merge = df_clean.merge(
         gdf_communes[["code_commune", "geometry"]],
         on="code_commune",
-        how="left"
+        how="inner"
     )
 
     # transformer en GeoDataFrame

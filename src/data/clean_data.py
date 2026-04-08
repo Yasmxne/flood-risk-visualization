@@ -70,6 +70,8 @@ def clean_catnat():
 
     df["type_risque"] = df["type_risque"].replace(mapping)
 
+    df = df.drop_duplicates(subset=["code_commune", "lib_commune", "num_risque", "type_risque", "date_debut"])
+
     # créer les colonnes annee et mois de l'occurence de l'aléa
     df["annee"] = df["date_debut"].dt.year
     df["mois"] = df["date_debut"].dt.month
