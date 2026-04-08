@@ -2,7 +2,7 @@
 import pandas as pd
 import geopandas as gpd
 
-from src.config import CATNAT_FILE, COMMUNES_FILE, WATERWAYS_FILE, CLEAN_CATNAT_FILE, MERGED_FILE
+from src.config import CATNAT_FILE, COMMUNES_FILE, WATERWAYS_FILE, CLEAN_CATNAT_FILE, MERGED_FILE, FEATURES_FILE
 
 
 def load_catnat():
@@ -28,6 +28,10 @@ def load_merged():
     gdf = gpd.read_file(MERGED_FILE)
     return gdf
 
+def load_features():
+    gdf = gpd.read_file(FEATURES_FILE)
+    return gdf
+
 if __name__ == "__main__":
     
     print("Loading catnat...")
@@ -49,3 +53,7 @@ if __name__ == "__main__":
     print("\nLoading merged data...")
     df_merged = load_merged()
     print(df_merged.shape)
+
+    print("\nLoading dataset with features...")
+    df_features = load_features()
+    print(df_features.shape)

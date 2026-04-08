@@ -19,4 +19,4 @@ WATERWAYS_FILE = EXTERNAL_DIR / "CoursEau_FXX-shp-20260227T123048Z-1-001" / "Cou
 # Outputs utiles
 CLEAN_CATNAT_FILE = PROCESSED_DIR / "catnat_clean.csv"
 MERGED_FILE = PROCESSED_DIR / "catnat_communes.geojson"
-FEATURES_FILE = PROCESSED_DIR / "features.csv"
+FEATURES_FILE = PROCESSED_DIR / "commune_year_type_features.geojson"
