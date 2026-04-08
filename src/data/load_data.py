@@ -42,10 +42,10 @@ if __name__ == "__main__":
     gdf_water = load_waterways()
     print(gdf_water.shape)
 
-    print("\nLoading clean catnat")
+    print("\nLoading clean catnat...")
     df_clean_catnat = load_clean_catnat()
     print(df_clean_catnat.shape)
 
-    print("\nLoading merged data")
+    print("\nLoading merged data...")
     df_merged = load_merged()
     print(df_merged.shape)
