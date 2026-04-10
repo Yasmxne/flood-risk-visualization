@@ -9,7 +9,7 @@ def plot_france_communes_risk_count(
     year: int,
     hazard: str,
     date_col: str = "date_debut",
-    hazard_col: str = "libelle_alea",
+    hazard_col: str = "type_risque",
     commune_code_col: str = "code_commune",
     figsize: tuple = (14, 14),
     cmap: str = "OrRd"
