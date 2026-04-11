@@ -192,3 +192,145 @@ def plot_france_regions_risk_count(
     )
 
     return fig, filtered
+
+import json
+import numpy as np
+import geopandas as gpd
+import plotly.express as px
+import plotly.graph_objects as go
+
+
+def plot_france_regions_risk_count1(
+    year: int,
+    hazard: str,
+    region_file=MERGED_FILE_REGION,
+    year_col: str = "annee",
+    hazard_col: str = "type_risque",
+    region_code_col: str = "code_region",
+    region_name_col: str = "nom_region",
+    count_col: str = "nb_catastrophes",
+    metro_only: bool = True
+):
+    gdf = gpd.read_file(region_file)
+
+    required_cols = [year_col, hazard_col, region_code_col, region_name_col, count_col, "geometry"]
+    missing_cols = [col for col in required_cols if col not in gdf.columns]
+    if missing_cols:
+        raise ValueError(f"Colonnes manquantes dans MERGED_REGION_FILE : {missing_cols}")
+
+    gdf[region_code_col] = gdf[region_code_col].astype(str).str.zfill(2)
+    gdf[hazard_col] = gdf[hazard_col].astype(str).str.strip().str.lower()
+
+    filtered = gdf[
+        (gdf[year_col] == year) &
+        (gdf[hazard_col] == hazard.lower())
+    ].copy()
+
+    if metro_only:
+        dom_codes = {"01", "02", "03", "04", "06"}
+        filtered = filtered[~filtered[region_code_col].isin(dom_codes)]
+
+    if filtered.empty:
+        raise ValueError(f"Aucune donnée pour l'année {year} et l'aléa '{hazard}'")
+
+    filtered = filtered.to_crs(epsg=4326)
+
+    # Palette selon l'aléa
+    hazard_scales = {
+        "inondation": ["#deebf7", "#9ecae1", "#3182bd", "#08519c"],
+        "secheresse": ["#feedde", "#fdbe85", "#fd8d3c", "#d94701"],
+        "mouvement_terrain": ["#f0f0f0", "#bdbdbd", "#636363", "#252525"],
+        "tempete": ["#efedf5", "#bcbddc", "#756bb1", "#54278f"],
+        "neige_grele": ["#edf8fb", "#b2e2e2", "#66c2a4", "#238b45"],
+        "vagues_submersion": ["#eff3ff", "#bdd7e7", "#6baed6", "#2171b5"],
+        "seisme": ["#fee5d9", "#fcae91", "#fb6a4a", "#cb181d"],
+        "autre": ["#f7f7f7", "#cccccc", "#969696", "#525252"]
+    }
+    color_scale = hazard_scales.get(hazard.lower(), "OrRd")
+
+    geojson_data = json.loads(filtered.to_json())
+
+    fig = px.choropleth(
+        filtered,
+        geojson=geojson_data,
+        locations=region_code_col,
+        featureidkey=f"properties.{region_code_col}",
+        color=count_col,
+        hover_name=region_name_col,
+        hover_data={
+            region_code_col: True,
+            year_col: True,
+            hazard_col: True,
+            count_col: True
+        },
+        color_continuous_scale=color_scale,
+        projection="mercator"
+    )
+
+    # Centroïdes pour noms + barres
+    centroids = filtered.copy()
+    centroids_proj = centroids.to_crs(epsg=2154)  # projection métrique
+    centroids["geometry"] = centroids_proj.centroid.to_crs(epsg=4326)
+
+    centroids["lon"] = centroids.geometry.x
+    centroids["lat"] = centroids.geometry.y
+
+    max_count = centroids[count_col].max()
+    if max_count == 0:
+        max_count = 1
+
+    # hauteur visuelle relative des barres
+    centroids["bar_height"] = 0.8 + 2.8 * (centroids[count_col] / max_count)
+
+    # barres verticales
+    for _, row in centroids.iterrows():
+        fig.add_trace(
+            go.Scattergeo(
+                lon=[row["lon"], row["lon"]],
+                lat=[row["lat"], row["lat"] + row["bar_height"]],
+                mode="lines",
+                line=dict(width=4, color="black"),
+                showlegend=False,
+                hoverinfo="skip"
+            )
+        )
+
+    # valeurs au-dessus des barres
+    fig.add_trace(
+        go.Scattergeo(
+            lon=centroids["lon"],
+            lat=centroids["lat"] + centroids["bar_height"] + 0.2,
+            mode="text",
+            text=centroids[count_col].astype(str),
+            textfont=dict(size=11, color="black"),
+            showlegend=False,
+            hoverinfo="skip"
+        )
+    )
+
+    # noms des régions
+    fig.add_trace(
+        go.Scattergeo(
+            lon=centroids["lon"],
+            lat=centroids["lat"] - 0.35,
+            mode="text",
+            text=centroids[region_name_col],
+            textfont=dict(size=10, color="black"),
+            showlegend=False,
+            hoverinfo="skip"
+        )
+    )
+
+    fig.update_geos(
+        fitbounds="locations",
+        visible=False
+    )
+
+    zone_label = "France métropolitaine" if metro_only else "France"
+    fig.update_layout(
+        title=f"Nombre de catastrophes de type '{hazard}' par région en {year} - {zone_label}",
+        margin={"r": 0, "t": 60, "l": 0, "b": 0},
+        height=800
+    )
+
+    return fig, filtered
