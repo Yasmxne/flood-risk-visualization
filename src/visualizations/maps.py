@@ -1,8 +1,12 @@
 """ cartes (heatmap, bulles, geojson) """
 import pandas as pd
 import geopandas as gpd
+import json
 import matplotlib.pyplot as plt
+import plotly.express as px
+import plotly.graph_objects as go
 
+from src.config import FEATURES_FILE
 from src.config import MERGED_FILE_REGION
 
 def plot_france_communes_risk_count(
@@ -127,13 +131,6 @@ def plot_france_communes_risk_count(
     return fig, ax, france_map_4326
 
 
-import json
-import geopandas as gpd
-import plotly.express as px
-
-from src.config import FEATURES_FILE
-
-
 def plot_france_regions_risk_count(
     year: int,
     hazard: str,
@@ -193,14 +190,8 @@ def plot_france_regions_risk_count(
 
     return fig, filtered
 
-import json
-import numpy as np
-import geopandas as gpd
-import plotly.express as px
-import plotly.graph_objects as go
 
-
-def plot_france_regions_risk_count1(
+def plot_france_regions_risk_count_1(
     year: int,
     hazard: str,
     region_file=MERGED_FILE_REGION,
@@ -213,14 +204,35 @@ def plot_france_regions_risk_count1(
 ):
     gdf = gpd.read_file(region_file)
 
-    required_cols = [year_col, hazard_col, region_code_col, region_name_col, count_col, "geometry"]
+    required_cols = [
+        year_col,
+        hazard_col,
+        region_code_col,
+        region_name_col,
+        count_col,
+        "geometry"
+    ]
     missing_cols = [col for col in required_cols if col not in gdf.columns]
     if missing_cols:
-        raise ValueError(f"Colonnes manquantes dans MERGED_REGION_FILE : {missing_cols}")
+        raise ValueError(f"Colonnes manquantes : {missing_cols}")
 
+    # Harmonisation
     gdf[region_code_col] = gdf[region_code_col].astype(str).str.zfill(2)
     gdf[hazard_col] = gdf[hazard_col].astype(str).str.strip().str.lower()
 
+    # Base géographique complète : une ligne par région
+    france_regions = (
+        gdf[[region_code_col, region_name_col, "geometry"]]
+        .dropna(subset=[region_code_col, region_name_col, "geometry"])
+        .drop_duplicates(subset=[region_code_col])
+        .copy()
+    )
+
+    if metro_only:
+        dom_codes = {"01", "02", "03", "04", "06"}
+        france_regions = france_regions[~france_regions[region_code_col].isin(dom_codes)]
+
+    # Données filtrées sur année + aléa
     filtered = gdf[
         (gdf[year_col] == year) &
         (gdf[hazard_col] == hazard.lower())
@@ -230,12 +242,33 @@ def plot_france_regions_risk_count1(
         dom_codes = {"01", "02", "03", "04", "06"}
         filtered = filtered[~filtered[region_code_col].isin(dom_codes)]
 
-    if filtered.empty:
-        raise ValueError(f"Aucune donnée pour l'année {year} et l'aléa '{hazard}'")
+    # Agrégation par région
+    counts = (
+        filtered.groupby(region_code_col, as_index=False)[count_col]
+        .sum()
+    )
 
-    filtered = filtered.to_crs(epsg=4326)
+    # Merge left pour garder toutes les régions
+    france_map = france_regions.merge(
+        counts,
+        on=region_code_col,
+        how="left"
+    )
 
-    # Palette selon l'aléa
+    # Remplir les absences par 0
+    france_map[count_col] = france_map[count_col].fillna(0)
+
+    # Si besoin, convertir en int
+    france_map[count_col] = france_map[count_col].astype(int)
+
+    france_map = gpd.GeoDataFrame(france_map, geometry="geometry", crs=gdf.crs)
+
+    if france_map.crs is None:
+        raise ValueError("Le CRS du GeoDataFrame est manquant.")
+
+    france_map = france_map.to_crs(epsg=4326)
+
+    # Palette selon aléa
     hazard_scales = {
         "inondation": ["#deebf7", "#9ecae1", "#3182bd", "#08519c"],
         "secheresse": ["#feedde", "#fdbe85", "#fd8d3c", "#d94701"],
@@ -248,10 +281,10 @@ def plot_france_regions_risk_count1(
     }
     color_scale = hazard_scales.get(hazard.lower(), "OrRd")
 
-    geojson_data = json.loads(filtered.to_json())
+    geojson_data = json.loads(france_map.to_json())
 
     fig = px.choropleth(
-        filtered,
+        france_map,
         geojson=geojson_data,
         locations=region_code_col,
         featureidkey=f"properties.{region_code_col}",
@@ -259,63 +292,31 @@ def plot_france_regions_risk_count1(
         hover_name=region_name_col,
         hover_data={
             region_code_col: True,
-            year_col: True,
-            hazard_col: True,
             count_col: True
         },
         color_continuous_scale=color_scale,
         projection="mercator"
     )
 
-    # Centroïdes pour noms + barres
-    centroids = filtered.copy()
-    centroids_proj = centroids.to_crs(epsg=2154)  # projection métrique
+    # Supprimer l’échelle
+    fig.update_layout(coloraxis_showscale=False)
+
+    # Centroïdes pour afficher les labels
+    centroids = france_map.copy()
+    centroids_proj = centroids.to_crs(epsg=2154)
     centroids["geometry"] = centroids_proj.centroid.to_crs(epsg=4326)
 
     centroids["lon"] = centroids.geometry.x
     centroids["lat"] = centroids.geometry.y
 
-    max_count = centroids[count_col].max()
-    if max_count == 0:
-        max_count = 1
-
-    # hauteur visuelle relative des barres
-    centroids["bar_height"] = 0.8 + 2.8 * (centroids[count_col] / max_count)
-
-    # barres verticales
-    for _, row in centroids.iterrows():
-        fig.add_trace(
-            go.Scattergeo(
-                lon=[row["lon"], row["lon"]],
-                lat=[row["lat"], row["lat"] + row["bar_height"]],
-                mode="lines",
-                line=dict(width=4, color="black"),
-                showlegend=False,
-                hoverinfo="skip"
-            )
-        )
-
-    # valeurs au-dessus des barres
+    # Texte : nom + valeur
     fig.add_trace(
         go.Scattergeo(
             lon=centroids["lon"],
-            lat=centroids["lat"] + centroids["bar_height"] + 0.2,
+            lat=centroids["lat"],
             mode="text",
-            text=centroids[count_col].astype(str),
+            text=centroids[region_name_col] + "<br>" + centroids[count_col].astype(str),
             textfont=dict(size=11, color="black"),
-            showlegend=False,
-            hoverinfo="skip"
-        )
-    )
-
-    # noms des régions
-    fig.add_trace(
-        go.Scattergeo(
-            lon=centroids["lon"],
-            lat=centroids["lat"] - 0.35,
-            mode="text",
-            text=centroids[region_name_col],
-            textfont=dict(size=10, color="black"),
             showlegend=False,
             hoverinfo="skip"
         )
@@ -328,9 +329,9 @@ def plot_france_regions_risk_count1(
 
     zone_label = "France métropolitaine" if metro_only else "France"
     fig.update_layout(
-        title=f"Nombre de catastrophes de type '{hazard}' par région en {year} - {zone_label}",
+        title=f"Nombre de catastrophes '{hazard}' par région en {year} - {zone_label}",
         margin={"r": 0, "t": 60, "l": 0, "b": 0},
         height=800
     )
 
-    return fig, filtered
+    return fig, france_map
