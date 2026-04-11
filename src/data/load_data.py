@@ -2,7 +2,7 @@
 import pandas as pd
 import geopandas as gpd
 
-from src.config import CATNAT_FILE, COMMUNES_FILE, WATERWAYS_FILE, CLEAN_CATNAT_FILE, MERGED_FILE, FEATURES_FILE
+from src.config import CATNAT_FILE, COMMUNES_FILE, REGIONS_FILE, WATERWAYS_FILE, CLEAN_CATNAT_FILE, FEATURES_FILE, MERGED_FILE_REGION, MERGED_FILE_COMMUNES
 
 
 def load_catnat():
@@ -14,6 +14,9 @@ def load_communes():
     gdf = gpd.read_file(COMMUNES_FILE)
     return gdf
 
+def load_regions():
+    gdf = gpd.read_file(REGIONS_FILE)
+    return gdf
 
 def load_waterways():
     gdf = gpd.read_file(WATERWAYS_FILE)
@@ -24,8 +27,12 @@ def load_clean_catnat():
     df["date_debut"] = pd.to_datetime(df["date_debut"], errors="coerce")   
     return df
 
-def load_merged():
-    gdf = gpd.read_file(MERGED_FILE)
+def load_merged_regions():
+    gdf = gpd.read_file(MERGED_FILE_REGION)
+    return gdf
+
+def load_merged_communes():
+    gdf = gpd.read_file(MERGED_FILE_COMMUNES)
     return gdf
 
 def load_features():
@@ -42,6 +49,10 @@ if __name__ == "__main__":
     gdf_communes = load_communes()
     print(gdf_communes.shape)
 
+    print("\nLoading regions...")
+    gdf_regions = load_regions()
+    print(gdf_regions.shape)
+
     print("\nLoading waterways...")
     gdf_water = load_waterways()
     print(gdf_water.shape)
@@ -50,9 +61,13 @@ if __name__ == "__main__":
     df_clean_catnat = load_clean_catnat()
     print(df_clean_catnat.shape)
 
-    print("\nLoading merged data...")
-    df_merged = load_merged()
-    print(df_merged.shape)
+    print("\nLoading merged data with region geometry...")
+    df_merged_regions = load_merged_regions()
+    print(df_merged_regions.shape)
+
+    print("\nLoading merged data with communes geometry...")
+    df_merged_communes = load_merged_communes()
+    print(df_merged_communes.shape)
 
     print("\nLoading dataset with features...")
     df_features = load_features()
