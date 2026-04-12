@@ -1,8 +1,9 @@
 """Charge les datasets"""
 import pandas as pd
 import geopandas as gpd
+import ast
 
-from src.config import CATNAT_FILE, COMMUNES_FILE, REGIONS_FILE, WATERWAYS_FILE, CLEAN_CATNAT_FILE, FEATURES_FILE, MERGED_FILE_REGION, MERGED_FILE_COMMUNES
+from src.config import CATNAT_FILE, COMMUNES_FILE, REGIONS_FILE, WATERWAYS_FILE, CLEAN_CATNAT_FILE, FEATURES_FILE, MERGED_FILE_REGION, MERGED_FILE_COMMUNES, MERGED_FILE_COMMUNES_WATERWAYS
 
 
 def load_catnat():
@@ -34,6 +35,21 @@ def load_merged_regions():
 def load_merged_communes():
     gdf = gpd.read_file(MERGED_FILE_COMMUNES)
     return gdf
+
+def load_merged_communes_waterways():
+    df = pd.read_csv(MERGED_FILE_COMMUNES_WATERWAYS, encoding="utf-8")
+
+    if "liste_cours_eau" in df.columns:
+        df["liste_cours_eau"] = df["liste_cours_eau"].apply(
+            lambda x: ast.literal_eval(x) if pd.notna(x) else []
+        )
+
+    if "liste_geometries_cours_eau" in df.columns:
+        df["liste_geometries_cours_eau"] = df["liste_geometries_cours_eau"].apply(
+            lambda x: ast.literal_eval(x) if pd.notna(x) else []
+        )
+
+    return df
 
 def load_features():
     gdf = gpd.read_file(FEATURES_FILE)
