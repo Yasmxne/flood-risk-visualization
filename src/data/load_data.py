@@ -88,3 +88,7 @@ if __name__ == "__main__":
     print("\nLoading dataset with features...")
     df_features = load_features()
     print(df_features.shape)
+
+    print("\nLoading merged dataset with waterways...")
+    df_waterways_merged = load_merged_communes_waterways()
+    print(df_waterways_merged.shape)

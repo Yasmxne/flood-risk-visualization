@@ -7,6 +7,7 @@ geopandas
 shapely
 fiona
 pyproj
+nbformat
 
 flask
 jinja2

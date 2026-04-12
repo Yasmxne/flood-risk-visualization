@@ -1,6 +1,8 @@
 """jointure des datasets"""
 import geopandas as gpd
+import pandas as pd
 
+from src.data.load_data import load_communes, load_waterways
 from src.data.clean_data import clean_catnat
 from src.data.load_data import load_communes, load_regions, load_waterways
 from src.config import MERGED_FILE_REGION, MERGED_FILE_COMMUNES, MERGED_FILE_COMMUNES_WATERWAYS
@@ -50,7 +52,7 @@ def merge_catnat_regions():
     )
 
     df_region = (
-        df_clean.groupby(["region", "annee", "type_risque"])
+        df_clean.groupby(["region", "annee", "mois", "type_risque"])
         .size()
         .reset_index(name="nb_catastrophes")
     )
@@ -68,11 +70,7 @@ def merge_catnat_regions():
 
 
 """jointure communes - cours d'eau"""
-import pandas as pd
-import geopandas as gpd
 
-from src.data.load_data import load_communes, load_waterways
-from src.config import PROCESSED_DIR
 
 
 def merge_communes_cours_eau():
@@ -191,13 +189,8 @@ def merge_communes_cours_eau():
     df_out["nb_cours_eau"] = df_out["nb_cours_eau"].fillna(0).astype(int)
 
     
-    # 🔥 conversion en string pour CSV (important)
     df_out["liste_cours_eau"] = df_out["liste_cours_eau"].astype(str)
     df_out["liste_geometries_cours_eau"] = df_out["liste_geometries_cours_eau"].astype(str)
-
-    # Sauvegarde CSV uniquement
-    df_out.to_csv(MERGED_FILE_COMMUNES_WATERWAYS, index=False, encoding="utf-8")
-
 
     return df_out
 
@@ -208,7 +201,9 @@ def save_merged_data():
     gdf_communes = merge_catnat_communes()
     gdf_communes.to_file(MERGED_FILE_COMMUNES, driver="GeoJSON")
 
-    merge_communes_cours_eau()
+    df_courseau_merged = merge_communes_cours_eau()
+    df_courseau_merged.to_csv(MERGED_FILE_COMMUNES_WATERWAYS, index=False, encoding="utf-8")
+
 
     print("Merged data saved")
 
