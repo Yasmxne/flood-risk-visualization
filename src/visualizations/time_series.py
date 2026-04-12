@@ -254,7 +254,7 @@ def plot_region_hazard_time_series(
 
     # Couleur selon aléa
     hazard_colors = {
-        "inondation": "#3182bd",
+        "inondation": "#1b0572",
         "secheresse": "#d94701",
         "mouvement_terrain": "#525252",
         "tempete": "#756bb1",
@@ -270,8 +270,9 @@ def plot_region_hazard_time_series(
         x=year_col,
         y=count_col,
         markers=True,
-        title=f"Évolution annuelle du nombre de catastrophes '{hazard}' en {region_name}"
-    )
+        title= f"Évolution annuelle du nombre de catastrophes '{hazard}' en {region_name}")
+    
+    
 
     fig.update_traces(
         line=dict(width=3, color=line_color),
