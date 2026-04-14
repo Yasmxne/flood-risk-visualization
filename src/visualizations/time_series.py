@@ -1,21 +1,48 @@
 """ séries temporelles """
-import matplotlib.pyplot as plt
-import geopandas as gpd
-import seaborn as sns
-from src.config import MERGED_FILE_REGION
+import matplotlib
+matplotlib.use("Agg")
+
 import pandas as pd
-# --- Courbes de comparaison mensuelle ---
+import matplotlib.pyplot as plt
+import plotly.express as px
 
-def plot_monthly_comparison(years, risks, region, region_file=MERGED_FILE_REGION):
-    df = gpd.read_file(region_file)
+from src.config import REGION_STATS_FILE
 
-    df_f = df[(df["annee"].isin(years)) & (df["type_risque"].isin(risks))].copy()
+
+def plot_monthly_comparison(
+    years,
+    risks,
+    region=None,
+    df_stats: pd.DataFrame | None = None,
+    year_col: str = "annee",
+    month_col: str = "mois",
+    hazard_col: str = "type_risque",
+    region_name_col: str = "nom_region",
+    count_col: str = "nb_catastrophes"
+):
+    if df_stats is None:
+        df_stats = pd.read_csv(REGION_STATS_FILE)
+
+    df = df_stats.copy()
+
+    required_cols = [year_col, month_col, hazard_col, region_name_col, count_col]
+    missing_cols = [col for col in required_cols if col not in df.columns]
+    if missing_cols:
+        raise ValueError(f"Colonnes manquantes : {missing_cols}")
+
+    df[hazard_col] = df[hazard_col].astype(str).str.strip().str.lower()
+    df[region_name_col] = df[region_name_col].astype(str).str.strip()
+
+    df_f = df[
+        (df[year_col].isin(years)) &
+        (df[hazard_col].isin(risks))
+    ].copy()
 
     if region:
-        df_f = df_f[df_f["nom_region"] == region]
+        df_f = df_f[df_f[region_name_col] == region]
 
-    counts = df_f[["type_risque", "annee", "mois", "nb_catastrophes"]].copy()
-    counts = counts.rename(columns={"nb_catastrophes": "nb"})
+    counts = df_f[[hazard_col, year_col, month_col, count_col]].copy()
+    counts = counts.rename(columns={count_col: "nb"})
 
     labels = {
         "inondation": "Inondation",
@@ -30,7 +57,7 @@ def plot_monthly_comparison(years, risks, region, region_file=MERGED_FILE_REGION
 
     mois_names = ["Jan", "Fév", "Mar", "Avr", "Mai", "Jun", "Jul", "Aoû", "Sep", "Oct", "Nov", "Déc"]
 
-    risks_with_data = [r for r in risks if r in counts["type_risque"].values]
+    risks_with_data = [r for r in risks if r in counts[hazard_col].values]
     labels_filtered = {k: v for k, v in labels.items() if k in risks_with_data}
 
     if not risks_with_data:
@@ -60,11 +87,15 @@ def plot_monthly_comparison(years, risks, region, region_file=MERGED_FILE_REGION
 
     for ax, risk in zip(axes, risks_with_data):
         for y in years:
-            data = counts[(counts["type_risque"] == risk) & (counts["annee"] == y)][["mois", "nb"]].copy()
-            full = pd.DataFrame({"mois": range(1, 13)})
-            data = full.merge(data, on="mois", how="left").fillna(0)
+            data = counts[
+                (counts[hazard_col] == risk) &
+                (counts[year_col] == y)
+            ][[month_col, "nb"]].copy()
 
-            ax.plot(data["mois"], data["nb"], marker="o", label=str(y), linewidth=2)
+            full = pd.DataFrame({month_col: range(1, 13)})
+            data = full.merge(data, on=month_col, how="left").fillna(0)
+
+            ax.plot(data[month_col], data["nb"], marker="o", label=str(y), linewidth=2)
 
         ax.set_title(labels.get(risk, risk), fontsize=12, fontweight="bold")
         ax.set_xticks(range(1, 13))
@@ -79,52 +110,43 @@ def plot_monthly_comparison(years, risks, region, region_file=MERGED_FILE_REGION
     plt.tight_layout()
     return fig
 
-#######################################
 
 def plot_region_hazard_time_series(
     region_name: str,
     hazard: str,
-    region_file=MERGED_FILE_REGION,
+    df_stats: pd.DataFrame | None = None,
     year_col: str = "annee",
     hazard_col: str = "type_risque",
     region_code_col: str = "code_region",
     region_name_col: str = "nom_region",
     count_col: str = "nb_catastrophes"
 ):
-    gdf = gpd.read_file(region_file)
+    if df_stats is None:
+        df_stats = pd.read_csv(REGION_STATS_FILE)
 
-    required_cols = [
-        year_col,
-        hazard_col,
-        region_code_col,
-        region_name_col,
-        count_col
-    ]
-    missing_cols = [col for col in required_cols if col not in gdf.columns]
+    df = df_stats.copy()
+
+    required_cols = [year_col, hazard_col, region_code_col, region_name_col, count_col]
+    missing_cols = [col for col in required_cols if col not in df.columns]
     if missing_cols:
         raise ValueError(f"Colonnes manquantes : {missing_cols}")
 
-    # Harmonisation
-    gdf[hazard_col] = gdf[hazard_col].astype(str).str.strip().str.lower()
-    gdf[region_name_col] = gdf[region_name_col].astype(str).str.strip()
+    df[hazard_col] = df[hazard_col].astype(str).str.strip().str.lower()
+    df[region_name_col] = df[region_name_col].astype(str).str.strip()
 
     region_name_clean = region_name.strip().lower()
     hazard_clean = hazard.strip().lower()
 
-    # Vérifier que la région existe dans la base
-    region_exists = (gdf[region_name_col].str.lower() == region_name_clean).any()
+    region_exists = (df[region_name_col].str.lower() == region_name_clean).any()
     if not region_exists:
         raise ValueError(f"Région introuvable dans la base : '{region_name}'")
 
-    # Sous-base de la région seulement
-    region_data = gdf[gdf[region_name_col].str.lower() == region_name_clean].copy()
+    region_data = df[df[region_name_col].str.lower() == region_name_clean].copy()
 
-    # Toutes les années présentes dans la base complète
     all_years = pd.DataFrame({
-        year_col: sorted(gdf[year_col].dropna().astype(int).unique())
+        year_col: sorted(df[year_col].dropna().astype(int).unique())
     })
 
-    # Comptage de l'aléa choisi dans la région
     filtered = region_data[region_data[hazard_col] == hazard_clean].copy()
 
     yearly_counts = (
@@ -133,11 +155,9 @@ def plot_region_hazard_time_series(
         .sort_values(year_col)
     )
 
-    # Garder toutes les années et mettre 0 si aucune occurrence
     yearly_counts = all_years.merge(yearly_counts, on=year_col, how="left")
     yearly_counts[count_col] = yearly_counts[count_col].fillna(0).astype(int)
 
-    # Couleur selon aléa
     hazard_colors = {
         "inondation": "#1b0572",
         "secheresse": "#d94701",
@@ -155,9 +175,8 @@ def plot_region_hazard_time_series(
         x=year_col,
         y=count_col,
         markers=True,
-        title= f"Évolution annuelle du nombre de catastrophes '{hazard}' en {region_name}")
-    
-    
+        title=f"Évolution annuelle du nombre de catastrophes '{hazard}' en {region_name}"
+    )
 
     fig.update_traces(
         line=dict(width=3, color=line_color),

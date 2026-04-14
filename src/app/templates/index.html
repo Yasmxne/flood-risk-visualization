@@ -3,287 +3,261 @@
 <head>
     <meta charset="UTF-8">
     <title>Catastrophes naturelles en France</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            margin: 30px;
-            background: #f8f9fb;
-            color: #222;
-        }
-
-        h1 {
-            margin-bottom: 30px;
-        }
-
-        .plot-section {
-            background: white;
-            padding: 20px;
-            margin-bottom: 30px;
-            border-radius: 12px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.08);
-        }
-
-        .filters {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 15px;
-            margin: 15px 0 20px 0;
-        }
-
-        .filters div {
-            display: flex;
-            flex-direction: column;
-        }
-
-        select, button {
-            padding: 8px;
-            min-width: 180px;
-        }
-
-        button {
-            cursor: pointer;
-            border: none;
-            background: #1f4fbf;
-            color: white;
-            border-radius: 6px;
-        }
-
-        .plot-container {
-            margin-top: 20px;
-            min-height: 120px;
-        }
-
-        .description {
-            color: #555;
-            margin-bottom: 10px;
-        }
-    </style>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <script src="https://cdn.plot.ly/plotly-2.35.2.min.js"></script>
 </head>
 <body>
+    <div class="page-shell">
 
-    <h1>Visualisation des catastrophes naturelles en France</h1>
+        <section class="hero">
+            <div class="hero-content">
+                <h1>Catastrophes naturelles en France</h1>
+                <p>
+                    Une interface interactive pour explorer la répartition spatiale et temporelle
+                    des catastrophes naturelles en France, avec un focus particulier sur les inondations
+                    et leur lien avec le réseau hydrographique.
+                </p>
 
-    <div class="plot-section">
-        <h2>1. Carte des catastrophes par région</h2>
-        <p class="description">
-            Cette carte montre le nombre de catastrophes pour un type de risque et une année donnés.
-        </p>
-
-        <form id="form-france-map">
-            <div class="filters">
-                <div>
-                    <label>Année</label>
-                    <select name="year">
-                        {% for y in years %}
-                        <option value="{{ y }}">{{ y }}</option>
-                        {% endfor %}
-                    </select>
-                </div>
-
-                <div>
-                    <label>Risque</label>
-                    <select name="hazard">
-                        {% for r in risks %}
-                        <option value="{{ r }}">{{ r }}</option>
-                        {% endfor %}
-                    </select>
-                </div>
-
-                <div>
-                    <label>&nbsp;</label>
-                    <button type="submit">Afficher</button>
+                <div class="hero-badges">
+                    <span class="badge">🌊 Focus inondations</span>
+                    <span class="badge">🗺️ Cartographie régionale</span>
+                    <span class="badge">📈 Analyse temporelle</span>
+                    <span class="badge">🇫🇷 Données France</span>
                 </div>
             </div>
-        </form>
+        </section>
 
-        <div id="plot-france-map" class="plot-container"></div>
-    </div>
+        <div class="section-grid">
 
-
-    <div class="plot-section">
-        <h2>2. Évolution annuelle d’un risque dans une région</h2>
-        <p class="description">
-            Cette visualisation montre l’évolution du nombre de catastrophes d’un type donné dans une région donnée.
-        </p>
-
-        <form id="form-region-time-series">
-            <div class="filters">
-                <div>
-                    <label>Région</label>
-                    <select name="region">
-                        {% for r in regions %}
-                        <option value="{{ r }}">{{ r }}</option>
-                        {% endfor %}
-                    </select>
+            <div class="plot-section">
+                <div class="section-top">
+                    <div class="section-title-wrap">
+                        <h2>Carte des catastrophes par région</h2>
+                        <p class="description">
+                            Cette carte montre le nombre de catastrophes pour un type de risque et une année donnés.
+                        </p>
+                    </div>
+                    <div class="section-index">1</div>
                 </div>
 
-                <div>
-                    <label>Risque</label>
-                    <select name="hazard">
-                        {% for r in risks %}
-                        <option value="{{ r }}">{{ r }}</option>
-                        {% endfor %}
-                    </select>
-                </div>
+                <form id="form-france-map">
+                    <div class="filters">
+                        <div class="filter-box">
+                            <label>Année</label>
+                            <select name="year">
+                                {% for y in years %}
+                                <option value="{{ y }}">{{ y }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
 
-                <div>
-                    <label>&nbsp;</label>
-                    <button type="submit">Afficher</button>
-                </div>
+                        <div class="filter-box">
+                            <label>Risque</label>
+                            <select name="hazard">
+                                {% for r in risks %}
+                                <option value="{{ r }}">{{ r }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+
+                        <div class="filter-box">
+                            <label>&nbsp;</label>
+                            <button type="submit">Afficher</button>
+                        </div>
+                    </div>
+                </form>
+
+                <div id="plot-france-map" class="plot-container"></div>
             </div>
-        </form>
-
-        <div id="plot-region-time-series" class="plot-container"></div>
-    </div>
 
 
-    <div class="plot-section">
-        <h2>3. Comparaison mensuelle entre années</h2>
-        <p class="description">
-            Cette visualisation compare la répartition mensuelle des catastrophes selon plusieurs années, pour une région et un ou plusieurs types de risques.
-        </p>
-
-        <form id="form-monthly-comparison">
-            <div class="filters">
-                <div>
-                    <label>Région</label>
-                    <select name="region">
-                        {% for r in regions %}
-                        <option value="{{ r }}">{{ r }}</option>
-                        {% endfor %}
-                    </select>
+            <div class="plot-section">
+                <div class="section-top">
+                    <div class="section-title-wrap">
+                        <h2>Évolution annuelle d’un risque dans une région</h2>
+                        <p class="description">
+                            Cette visualisation montre l’évolution du nombre de catastrophes d’un type donné dans une région donnée.
+                        </p>
+                    </div>
+                    <div class="section-index">2</div>
                 </div>
 
-                <div>
-                    <label>Années</label>
-                    <select name="years" multiple size="5">
-                        {% for y in years %}
-                        <option value="{{ y }}">{{ y }}</option>
-                        {% endfor %}
-                    </select>
-                </div>
+                <form id="form-region-time-series">
+                    <div class="filters">
+                        <div class="filter-box">
+                            <label>Région</label>
+                            <select name="region">
+                                {% for r in regions %}
+                                <option value="{{ r }}">{{ r }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
 
-                <div>
-                    <label>Risques</label>
-                    <select name="risks" multiple size="5">
-                        {% for r in risks %}
-                        <option value="{{ r }}">{{ r }}</option>
-                        {% endfor %}
-                    </select>
-                </div>
+                        <div class="filter-box">
+                            <label>Risque</label>
+                            <select name="hazard">
+                                {% for r in risks %}
+                                <option value="{{ r }}">{{ r }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
 
-                <div>
-                    <label>&nbsp;</label>
-                    <button type="submit">Afficher</button>
-                </div>
+                        <div class="filter-box">
+                            <label>&nbsp;</label>
+                            <button type="submit">Afficher</button>
+                        </div>
+                    </div>
+                </form>
+
+                <div id="plot-region-time-series" class="plot-container"></div>
             </div>
-        </form>
-
-        <div id="plot-monthly-comparison" class="plot-container"></div>
-    </div>
 
 
-    <div class="plot-section">
-        <h2>4. Saisonnalité des catastrophes</h2>
-        <p class="description">
-            Ce boxplot montre la distribution mensuelle des catastrophes sur l’ensemble des années pour une région et un ou plusieurs risques.
-        </p>
-
-        <form id="form-seasonality-boxplot">
-            <div class="filters">
-                <div>
-                    <label>Région</label>
-                    <select name="region">
-                        {% for r in regions %}
-                        <option value="{{ r }}">{{ r }}</option>
-                        {% endfor %}
-                    </select>
+            <div class="plot-section">
+                <div class="section-top">
+                    <div class="section-title-wrap">
+                        <h2>Comparaison mensuelle entre années</h2>
+                        <p class="description">
+                            Cette visualisation compare la répartition mensuelle des catastrophes selon plusieurs années, pour une région et un ou plusieurs types de risques.
+                        </p>
+                    </div>
+                    <div class="section-index">3</div>
                 </div>
 
-                <div>
-                    <label>Risques</label>
-                    <select name="risks" multiple size="5">
-                        {% for r in risks %}
-                        <option value="{{ r }}">{{ r }}</option>
-                        {% endfor %}
-                    </select>
-                </div>
+                <form id="form-monthly-comparison">
+                    <div class="filters">
+                        <div class="filter-box">
+                            <label>Région</label>
+                            <select name="region">
+                                {% for r in regions %}
+                                <option value="{{ r }}">{{ r }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
 
-                <div>
-                    <label>&nbsp;</label>
-                    <button type="submit">Afficher</button>
-                </div>
+                        <div class="filter-box">
+                            <label>Années</label>
+                            <div class="checkbox-scroll">
+                                {% for y in years %}
+                                <label>
+                                    <input type="checkbox" name="years" value="{{ y }}">
+                                    {{ y }}
+                                </label>
+                                {% endfor %}
+                            </div>
+                            <small class="helper">Sélection multiple possible</small>
+                        </div>
+
+                        <div class="filter-box">
+                            <label>Risques</label>
+                            <div class="checkbox-scroll">
+                                {% for r in risks %}
+                                <label>
+                                    <input type="checkbox" name="risks" value="{{ r }}">
+                                    {{ r }}
+                                </label>
+                                {% endfor %}
+                            </div>
+                            <small class="helper">Sélection multiple possible</small>
+                        </div>
+
+                        <div class="filter-box">
+                            <label>&nbsp;</label>
+                            <button type="submit">Afficher</button>
+                        </div>
+                    </div>
+                </form>
+
+                <div id="plot-monthly-comparison" class="plot-container"></div>
             </div>
-        </form>
-
-        <div id="plot-seasonality-boxplot" class="plot-container"></div>
-    </div>
 
 
-    <div class="plot-section">
-        <h2>5. Cours d’eau et inondations</h2>
-        <p class="description">
-            Cette visualisation met en relation le réseau hydrographique d’une région et l’évolution des inondations.
-        </p>
-
-        <form id="form-waterways-flood">
-            <div class="filters">
-                <div>
-                    <label>Région</label>
-                    <select name="region">
-                        {% for r in regions %}
-                        <option value="{{ r }}">{{ r }}</option>
-                        {% endfor %}
-                    </select>
+            <div class="plot-section">
+                <div class="section-top">
+                    <div class="section-title-wrap">
+                        <h2>Saisonnalité des catastrophes</h2>
+                        <p class="description">
+                            Ce boxplot montre la distribution mensuelle des catastrophes sur l’ensemble des années pour une région et un ou plusieurs risques.
+                        </p>
+                    </div>
+                    <div class="section-index">4</div>
                 </div>
 
-                <div>
-                    <label>&nbsp;</label>
-                    <button type="submit">Afficher</button>
-                </div>
+                <form id="form-seasonality-boxplot">
+                    <div class="filters">
+                        <div class="filter-box">
+                            <label>Région</label>
+                            <select name="region">
+                                {% for r in regions %}
+                                <option value="{{ r }}">{{ r }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+
+                        <div class="filter-box">
+                            <label>Risques</label>
+                            <div class="checkbox-scroll">
+                                {% for r in risks %}
+                                <label>
+                                    <input type="checkbox" name="risks" value="{{ r }}">
+                                    {{ r }}
+                                </label>
+                                {% endfor %}
+                            </div>
+                            <small class="helper">Sélection multiple possible</small>
+                        </div>
+
+                        <div class="filter-box">
+                            <label>&nbsp;</label>
+                            <button type="submit">Afficher</button>
+                        </div>
+                    </div>
+                </form>
+
+                <div id="plot-seasonality-boxplot" class="plot-container"></div>
             </div>
-        </form>
 
-        <div id="plot-waterways-flood" class="plot-container"></div>
+
+            <div class="plot-section">
+                <div class="section-top">
+                    <div class="section-title-wrap">
+                        <h2>Cours d’eau et inondations</h2>
+                        <p class="description">
+                            Cette visualisation met en relation le réseau hydrographique d’une région et l’évolution des inondations.
+                        </p>
+                    </div>
+                    <div class="section-index">5</div>
+                </div>
+
+                <form id="form-waterways-flood">
+                    <div class="filters">
+                        <div class="filter-box">
+                            <label>Région</label>
+                            <select name="region">
+                                {% for r in regions %}
+                                <option value="{{ r }}">{{ r }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+
+                        <div class="filter-box">
+                            <label>&nbsp;</label>
+                            <button type="submit">Afficher</button>
+                        </div>
+                    </div>
+                </form>
+
+                <div id="plot-waterways-flood" class="plot-container"></div>
+            </div>
+
+        </div>
+
+        <div class="footer-note">
+            Projet de visualisation de données — catastrophes naturelles en France
+        </div>
+
     </div>
 
-
-<script>
-    async function submitPlot(formId, endpoint, containerId) {
-        const form = document.getElementById(formId);
-        const container = document.getElementById(containerId);
-
-        form.addEventListener("submit", async function(e) {
-            e.preventDefault();
-
-            container.innerHTML = "<p>Chargement...</p>";
-
-            const formData = new FormData(form);
-
-            const response = await fetch(endpoint, {
-                method: "POST",
-                body: formData
-            });
-
-            const html = await response.text();
-            container.innerHTML = html;
-
-            const scripts = container.querySelectorAll("script");
-            scripts.forEach(oldScript => {
-                const newScript = document.createElement("script");
-                newScript.text = oldScript.text;
-                document.body.appendChild(newScript);
-                document.body.removeChild(newScript);
-            });
-        });
-    }
-
-    submitPlot("form-france-map", "/plot/france-map", "plot-france-map");
-    submitPlot("form-region-time-series", "/plot/region-time-series", "plot-region-time-series");
-    submitPlot("form-monthly-comparison", "/plot/monthly-comparison", "plot-monthly-comparison");
-    submitPlot("form-seasonality-boxplot", "/plot/seasonality-boxplot", "plot-seasonality-boxplot");
-    submitPlot("form-waterways-flood", "/plot/waterways-flood", "plot-waterways-flood");
-</script>
-
+    <script src="{{ url_for('static', filename='js/main.js') }}"></script>
 </body>
 </html>

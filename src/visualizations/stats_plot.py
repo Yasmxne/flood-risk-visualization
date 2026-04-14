@@ -1,23 +1,47 @@
 """histogrammes, comparaisons"""
 
+"""histogrammes, comparaisons"""
+
+import matplotlib
+matplotlib.use("Agg")
+
+import pandas as pd
 import matplotlib.pyplot as plt
-import geopandas as gpd
 import seaborn as sns
-from src.config import MERGED_FILE_REGION
+
+from src.config import REGION_STATS_FILE
 
 
+def plot_seasonality_boxplot(
+    risks,
+    region=None,
+    df_stats: pd.DataFrame | None = None,
+    hazard_col: str = "type_risque",
+    region_name_col: str = "nom_region",
+    year_col: str = "annee",
+    month_col: str = "mois",
+    count_col: str = "nb_catastrophes"
+):
+    if df_stats is None:
+        df_stats = pd.read_csv(REGION_STATS_FILE)
 
+    df = df_stats.copy()
 
-def plot_seasonality_boxplot(risks, region, region_file=MERGED_FILE_REGION):
-    gdf = gpd.read_file(region_file)
+    required_cols = [hazard_col, region_name_col, year_col, month_col, count_col]
+    missing_cols = [col for col in required_cols if col not in df.columns]
+    if missing_cols:
+        raise ValueError(f"Colonnes manquantes : {missing_cols}")
 
-    df_f = gdf[gdf["type_risque"].isin(risks)].copy()
+    df[hazard_col] = df[hazard_col].astype(str).str.strip().str.lower()
+    df[region_name_col] = df[region_name_col].astype(str).str.strip()
+
+    df_f = df[df[hazard_col].isin(risks)].copy()
 
     if region:
-        df_f = df_f[df_f["nom_region"] == region]
+        df_f = df_f[df_f[region_name_col] == region]
 
-    counts = df_f[["type_risque", "annee", "mois", "nb_catastrophes"]].copy()
-    counts = counts.rename(columns={"nb_catastrophes": "nb"})
+    counts = df_f[[hazard_col, year_col, month_col, count_col]].copy()
+    counts = counts.rename(columns={count_col: "nb"})
 
     labels = {
         "inondation": "Inondation",
@@ -43,7 +67,7 @@ def plot_seasonality_boxplot(risks, region, region_file=MERGED_FILE_REGION):
         "Autre": "#9E9E9E"
     }
 
-    risks_with_data = [r for r in risks if r in counts["type_risque"].values]
+    risks_with_data = [r for r in risks if r in counts[hazard_col].values]
     labels_filtered = {k: v for k, v in labels.items() if k in risks_with_data}
 
     if not risks_with_data:
@@ -56,7 +80,7 @@ def plot_seasonality_boxplot(risks, region, region_file=MERGED_FILE_REGION):
     cols = min(n, 4)
     rows = (n + cols - 1) // cols
 
-    counts["risque_label"] = counts["type_risque"].map(labels)
+    counts["risque_label"] = counts[hazard_col].map(labels)
 
     region_title = region if region else "France entière"
     fig, axes = plt.subplots(rows, cols, figsize=(6 * cols, 5 * rows))
@@ -73,9 +97,10 @@ def plot_seasonality_boxplot(risks, region, region_file=MERGED_FILE_REGION):
 
     for ax, risk_label in zip(axes, labels_filtered.values()):
         data = counts[counts["risque_label"] == risk_label]
+
         sns.boxplot(
             data=data,
-            x="mois",
+            x=month_col,
             y="nb",
             color=colors[risk_label],
             ax=ax,
@@ -83,6 +108,7 @@ def plot_seasonality_boxplot(risks, region, region_file=MERGED_FILE_REGION):
             linewidth=0.8,
             showfliers=False
         )
+
         ax.set_title(risk_label, fontsize=12, fontweight="bold", color=colors[risk_label])
         ax.set_xticks(range(12))
         ax.set_xticklabels(mois_names, fontsize=7, rotation=45)

@@ -1,0 +1,316 @@
+:root {
+    --bg: #f4f8fb;
+    --card: rgba(255, 255, 255, 0.88);
+    --card-border: rgba(13, 47, 89, 0.10);
+    --text: #16202a;
+    --muted: #5c6c7b;
+    --primary: #1e5eff;
+    --primary-dark: #143ca8;
+    --flood: #0d3b85;
+    --flood-light: #dbeafe;
+    --accent: #2dd4bf;
+    --shadow: 0 10px 30px rgba(15, 40, 70, 0.10);
+    --radius: 18px;
+}
+
+* {
+    box-sizing: border-box;
+}
+
+html {
+    scroll-behavior: smooth;
+}
+
+body {
+    margin: 0;
+    font-family: Inter, Arial, sans-serif;
+    color: var(--text);
+    background:
+        radial-gradient(circle at top left, rgba(30,94,255,0.10), transparent 25%),
+        radial-gradient(circle at top right, rgba(45,212,191,0.10), transparent 20%),
+        linear-gradient(180deg, #eef5fb 0%, #f8fbfd 100%);
+}
+
+.page-shell {
+    max-width: 1450px;
+    margin: 0 auto;
+    padding: 28px 24px 60px;
+}
+
+.hero {
+    position: relative;
+    overflow: hidden;
+    background:
+        linear-gradient(135deg, rgba(13,59,133,0.95), rgba(30,94,255,0.90)),
+        url("https://images.unsplash.com/photo-1500375592092-40eb2168fd21?auto=format&fit=crop&w=1600&q=80") center/cover;
+    color: white;
+    border-radius: 26px;
+    padding: 34px 36px;
+    box-shadow: var(--shadow);
+    margin-bottom: 28px;
+}
+
+.hero::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(180deg, rgba(255,255,255,0.00), rgba(255,255,255,0.02));
+    pointer-events: none;
+}
+
+.hero-content {
+    position: relative;
+    z-index: 1;
+    max-width: 900px;
+}
+
+.hero h1 {
+    margin: 0 0 10px;
+    font-size: 2.4rem;
+    line-height: 1.1;
+    letter-spacing: -0.02em;
+}
+
+.hero p {
+    margin: 0;
+    font-size: 1.02rem;
+    line-height: 1.6;
+    color: rgba(255,255,255,0.92);
+    max-width: 760px;
+}
+
+.hero-badges {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-top: 18px;
+}
+
+.badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 14px;
+    border-radius: 999px;
+    background: rgba(255,255,255,0.14);
+    border: 1px solid rgba(255,255,255,0.18);
+    backdrop-filter: blur(8px);
+    font-size: 0.92rem;
+}
+
+.section-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 24px;
+}
+
+.plot-section {
+    background: var(--card);
+    border: 1px solid var(--card-border);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    padding: 24px;
+    backdrop-filter: blur(8px);
+}
+
+.section-top {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 16px;
+    margin-bottom: 14px;
+}
+
+.section-title-wrap h2 {
+    margin: 0 0 8px;
+    font-size: 1.85rem;
+    letter-spacing: -0.02em;
+}
+
+.section-index {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 42px;
+    height: 42px;
+    border-radius: 12px;
+    background: linear-gradient(135deg, var(--flood), var(--primary));
+    color: white;
+    font-weight: 700;
+    flex-shrink: 0;
+    box-shadow: 0 8px 20px rgba(13,59,133,0.18);
+}
+
+.description {
+    margin: 0 0 8px;
+    color: var(--muted);
+    line-height: 1.65;
+    font-size: 0.98rem;
+    max-width: 980px;
+}
+
+.filters {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 16px;
+    margin: 18px 0 22px;
+    align-items: end;
+}
+
+.filter-box {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+label {
+    font-size: 0.95rem;
+    font-weight: 600;
+    color: #223242;
+}
+
+select,
+button,
+.checkbox-scroll {
+    border-radius: 12px;
+    border: 1px solid rgba(13, 47, 89, 0.14);
+    background: white;
+    font-size: 0.96rem;
+}
+
+select {
+    padding: 10px 12px;
+    min-width: 0;
+    transition: 0.2s ease;
+}
+
+select:focus,
+button:focus {
+    outline: none;
+    border-color: rgba(30,94,255,0.45);
+    box-shadow: 0 0 0 4px rgba(30,94,255,0.10);
+}
+
+.checkbox-scroll {
+    max-height: 145px;
+    overflow-y: auto;
+    padding: 10px 12px;
+    background: #fcfdff;
+}
+
+.checkbox-scroll label {
+    display: flex;
+    align-items: center;
+    gap: 9px;
+    font-weight: 500;
+    margin-bottom: 8px;
+    color: #2c3d4d;
+    cursor: pointer;
+}
+
+.checkbox-scroll input[type="checkbox"] {
+    accent-color: var(--primary);
+}
+
+button {
+    padding: 12px 18px;
+    min-width: 160px;
+    cursor: pointer;
+    border: none;
+    color: white;
+    font-weight: 700;
+    background: linear-gradient(135deg, var(--primary), var(--flood));
+    transition: transform 0.15s ease, box-shadow 0.15s ease, opacity 0.15s ease;
+    box-shadow: 0 8px 18px rgba(30,94,255,0.22);
+}
+
+button:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 12px 24px rgba(30,94,255,0.28);
+}
+
+button:active {
+    transform: translateY(0);
+}
+
+.plot-container {
+    margin-top: 20px;
+    min-height: 360px;
+    border-radius: 18px;
+    background: linear-gradient(180deg, rgba(219,234,254,0.55), rgba(255,255,255,0.95));
+    border: 1px dashed rgba(13,59,133,0.16);
+    padding: 14px;
+    width: 100%;
+    overflow: visible;
+}
+
+.plot-container > div {
+    width: 100% !important;
+    min-height: 700px !important;
+}
+
+.plot-container img {
+    max-width: 100%;
+    height: auto;
+    display: block;
+    border-radius: 12px;
+}
+
+.loading-box {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 12px;
+    color: var(--muted);
+    font-weight: 600;
+}
+
+.spinner {
+    width: 34px;
+    height: 34px;
+    border-radius: 50%;
+    border: 4px solid rgba(30,94,255,0.15);
+    border-top-color: var(--primary);
+    animation: spin 0.8s linear infinite;
+}
+
+.footer-note {
+    text-align: center;
+    margin-top: 26px;
+    color: var(--muted);
+    font-size: 0.92rem;
+}
+
+small.helper {
+    color: var(--muted);
+    margin-top: 2px;
+    display: block;
+}
+
+@keyframes spin {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+@media (max-width: 900px) {
+    .hero {
+        padding: 26px 22px;
+    }
+
+    .hero h1 {
+        font-size: 2rem;
+    }
+
+    .plot-section {
+        padding: 18px;
+    }
+
+    .section-title-wrap h2 {
+        font-size: 1.45rem;
+    }
+
+    .plot-container {
+        min-height: 280px;
+    }
+}
