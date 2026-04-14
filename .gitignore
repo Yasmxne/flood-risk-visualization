@@ -4,7 +4,7 @@ __pycache__/
 *$py.class
 
 data/processed/*.geojson
-
+!data/processed/regions_only.geojson
 # C extensions
 *.so
 
