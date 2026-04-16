@@ -12,7 +12,7 @@ Projet réalisé dans le cadre du cours de **Data Storytelling**.
 ### 1. Cloner le dépôt
 
 ```bash
-git clone <repo_url>
+git clone https://github.com/Yasmxne/flood-risk-visualization.git
 cd flood-risk-visualization
 ```
 
@@ -33,6 +33,7 @@ La base des cours d’eau étant trop volumineuse, elle n’a pas été ajoutée
 
 Elle doit être téléchargée ici :
 [Télécharger les données des cours d’eau](https://drive.google.com/drive/folders/1IkljDCdZGyMSMst5Sbc1OCRlLCymSdBd?usp=sharing)
+
 Puis placer le dossier tel quel dans :
 
 ```bash
