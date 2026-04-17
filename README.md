@@ -3,7 +3,10 @@
 
 ## Contexte
 
-Projet réalisé dans le cadre du cours de **Data Storytelling**.
+Projet réalisé dans le cadre du cours de **Data Storytelling** par :
+- Aluch Yasmine
+- Ed-dazazi Khawla
+- El Amrani Joutei Rime
 
 ---
 
@@ -19,7 +22,7 @@ cd flood-risk-visualization
 ### 2. Créer un environnement virtuel et l'activer
 ```bash
 python -m venv .venv
-source .venv/bin/activate
+source .venv/Scripts/activate
 ```
 
 ### 3. Installer les dépendances
